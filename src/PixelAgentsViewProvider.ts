@@ -13,6 +13,7 @@ import {
 	getProjectDirPath,
 } from './agentManager.js';
 import { ensureProjectScan } from './fileWatcher.js';
+import { startGlobalSessionScanning as startGlobalSessionScanningFn } from './globalSessionScanner.js';
 import { loadFurnitureAssets, sendAssetsToWebview, loadFloorTiles, sendFloorTilesToWebview, loadWallTiles, sendWallTilesToWebview, loadCharacterSprites, sendCharacterSpritesToWebview, loadDefaultLayout } from './assetLoader.js';
 import { WORKSPACE_KEY_AGENT_SEATS, GLOBAL_KEY_SOUND_ENABLED } from './constants.js';
 import { writeLayoutToFile, readLayoutFromFile, watchLayoutFile } from './layoutPersistence.js';
@@ -55,6 +56,20 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
 
 	private persistAgents = (): void => {
 		persistAgents(this.agents, this.context);
+	};
+
+	private startGlobalSessionScanning = (): void => {
+		startGlobalSessionScanningFn(
+			this.nextAgentId,
+			this.agents,
+			this.activeAgentId,
+			this.fileWatchers,
+			this.pollingTimers,
+			this.waitingTimers,
+			this.permissionTimers,
+			this.webview,
+			this.persistAgents
+		);
 	};
 
 	resolveWebviewView(webviewView: vscode.WebviewView) {
@@ -112,6 +127,9 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
 						folders: wsFolders.map(f => ({ name: f.name, path: f.uri.fsPath })),
 					});
 				}
+
+				// Start global session scanning to detect Claude Code sessions across all projects
+				this.startGlobalSessionScanning();
 
 				// Ensure project scan runs even with no restored agents (to adopt external terminals)
 				const projectDir = getProjectDirPath();
