@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import { OfficeState } from './office/engine/officeState.js'
 import { OfficeCanvas } from './office/components/OfficeCanvas.js'
 import { ToolOverlay } from './office/components/ToolOverlay.js'
@@ -123,8 +123,7 @@ function EditActionBar({ editor, editorState: es }: { editor: ReturnType<typeof 
   )
 }
 
-export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
-  const adapter = propAdapter ?? defaultAdapter;
+function AppInner({ adapter }: { adapter: PlatformAdapter }) {
   const editor = useEditorActions(getOfficeState, editorState)
 
   const isEditDirty = useCallback(() => editor.isEditMode && editor.isDirty, [editor.isEditMode, editor.isDirty])
@@ -137,7 +136,7 @@ export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
 
   const handleSelectAgent = useCallback((id: number) => {
     adapter.postMessage({ type: 'focusAgent', id })
-  }, [])
+  }, [adapter])
 
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -156,7 +155,7 @@ export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
 
   const handleCloseAgent = useCallback((id: number) => {
     adapter.postMessage({ type: 'closeAgent', id })
-  }, [])
+  }, [adapter])
 
   const handleClick = useCallback((agentId: number) => {
     // If clicked agent is a sub-agent, focus the parent's terminal instead
@@ -164,7 +163,7 @@ export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
     const meta = os.subagentMeta.get(agentId)
     const focusId = meta ? meta.parentAgentId : agentId
     adapter.postMessage({ type: 'focusAgent', id: focusId })
-  }, [])
+  }, [adapter])
 
   const officeState = getOfficeState()
 
@@ -185,16 +184,13 @@ export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
 
   if (!layoutReady) {
     return (
-      <AdapterContext.Provider value={adapter}>
-        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--vscode-foreground)' }}>
-          Loading...
-        </div>
-      </AdapterContext.Provider>
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--vscode-foreground)' }}>
+        Loading...
+      </div>
     )
   }
 
   return (
-    <AdapterContext.Provider value={adapter}>
     <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
       <style>{`
         @keyframes pixel-agents-pulse {
@@ -318,6 +314,15 @@ export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
         />
       )}
     </div>
+  )
+}
+
+export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
+  const adapter = useMemo(() => propAdapter ?? defaultAdapter, [propAdapter]);
+
+  return (
+    <AdapterContext.Provider value={adapter}>
+      <AppInner adapter={adapter} />
     </AdapterContext.Provider>
   )
 }

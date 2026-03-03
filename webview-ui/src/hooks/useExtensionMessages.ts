@@ -85,8 +85,7 @@ export function useExtensionMessages(
     // Buffer agents from existingAgents until layout is loaded
     let pendingAgents: Array<{ id: number; palette?: number; hueShift?: number; seatId?: string; folderName?: string }> = []
 
-    const handler = (e: MessageEvent) => {
-      const msg = e.data
+    const handler = (msg: any) => {
       const os = getOfficeState()
 
       if (msg.type === 'layoutLoaded') {
@@ -355,11 +354,15 @@ export function useExtensionMessages(
         } catch (err) {
           console.error(`❌ Webview: Error processing furnitureAssetsLoaded:`, err)
         }
+      } else if (msg.type === 'layoutReady') {
+        layoutReadyRef.current = true
+        setLayoutReady(true)
       }
     }
-    window.addEventListener('message', handler)
+
+    const unsubscribe = adapter.onMessage(handler)
     adapter.postMessage({ type: 'webviewReady' })
-    return () => window.removeEventListener('message', handler)
+    return () => unsubscribe()
   }, [getOfficeState, adapter])
 
   return { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, loadedAssets, workspaceFolders }
