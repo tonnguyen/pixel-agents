@@ -1,13 +1,30 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { copyFileSync, mkdirSync, existsSync } from 'fs'
+import { copyFileSync, mkdirSync, existsSync, readdirSync } from 'fs'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Plugin to copy CSS and fonts to dist
+// Recursively copy directory
+function copyRecursive(src: string, dest: string) {
+  if (!existsSync(dest)) {
+    mkdirSync(dest, { recursive: true })
+  }
+  const entries = readdirSync(src, { withFileTypes: true })
+  for (const entry of entries) {
+    const srcPath = resolve(src, entry.name)
+    const destPath = resolve(dest, entry.name)
+    if (entry.isDirectory()) {
+      copyRecursive(srcPath, destPath)
+    } else {
+      copyFileSync(srcPath, destPath)
+    }
+  }
+}
+
+// Plugin to copy CSS, fonts, and assets to dist
 function copyAssets() {
   return {
     name: 'copy-assets',
@@ -20,12 +37,15 @@ function copyAssets() {
       // Copy fonts directory
       const fontsSrc = resolve(__dirname, 'src/fonts')
       const fontsDist = resolve(__dirname, 'dist/fonts')
-      if (!existsSync(fontsDist)) {
-        mkdirSync(fontsDist, { recursive: true })
+      if (existsSync(fontsSrc)) {
+        copyRecursive(fontsSrc, fontsDist)
       }
-      const fontFile = resolve(fontsSrc, 'FSPixelSansUnicode-Regular.ttf')
-      if (existsSync(fontFile)) {
-        copyFileSync(fontFile, resolve(fontsDist, 'FSPixelSansUnicode-Regular.ttf'))
+
+      // Copy public assets directory to dist
+      const publicAssetsSrc = resolve(__dirname, 'public/assets')
+      const distAssets = resolve(__dirname, 'dist/assets')
+      if (existsSync(publicAssetsSrc)) {
+        copyRecursive(publicAssetsSrc, distAssets)
       }
     }
   }
