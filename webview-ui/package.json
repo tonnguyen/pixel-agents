@@ -13,6 +13,14 @@
     "./adapter": "./dist/adapter.js",
     "./adapter-context": "./dist/adapterContext.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonnguyen/pixel-agents.git"
+  },
+  "homepage": "https://github.com/tonnguyen/pixel-agents#readme",
+  "bugs": {
+    "url": "https://github.com/tonnguyen/pixel-agents/issues"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
