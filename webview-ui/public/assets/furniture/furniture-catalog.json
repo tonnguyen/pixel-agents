@@ -1,0 +1,110 @@
+{
+  "assets": [
+    {
+      "id": "ASSET_40",
+      "name": "desk",
+      "label": "Desk",
+      "category": "desks",
+      "file": "assets/furniture/desk.png",
+      "width": 32,
+      "height": 32,
+      "footprintW": 2,
+      "footprintH": 1,
+      "isDesk": true,
+      "canPlaceOnWalls": false
+    },
+    {
+      "id": "ASSET_41",
+      "name": "chair",
+      "label": "Chair",
+      "category": "seating",
+      "file": "assets/furniture/chair.png",
+      "width": 16,
+      "height": 16,
+      "footprintW": 1,
+      "footprintH": 1,
+      "isDesk": false,
+      "canPlaceOnWalls": false
+    },
+    {
+      "id": "ASSET_42",
+      "name": "table",
+      "label": "Table",
+      "category": "tables",
+      "file": "assets/furniture/table.png",
+      "width": 32,
+      "height": 32,
+      "footprintW": 2,
+      "footprintH": 2,
+      "isDesk": false,
+      "canPlaceOnWalls": false
+    },
+    {
+      "id": "ASSET_43",
+      "name": "plant",
+      "label": "Plant",
+      "category": "decorations",
+      "file": "assets/furniture/plant.png",
+      "width": 16,
+      "height": 16,
+      "footprintW": 1,
+      "footprintH": 1,
+      "isDesk": false,
+      "canPlaceOnWalls": false
+    },
+    {
+      "id": "ASSET_44",
+      "name": "lamp",
+      "label": "Lamp",
+      "category": "lighting",
+      "file": "assets/furniture/lamp.png",
+      "width": 16,
+      "height": 16,
+      "footprintW": 1,
+      "footprintH": 1,
+      "isDesk": false,
+      "canPlaceOnWalls": false,
+      "canPlaceOnSurfaces": true
+    },
+    {
+      "id": "ASSET_45",
+      "name": "computer",
+      "label": "Computer",
+      "category": "electronics",
+      "file": "assets/furniture/computer.png",
+      "width": 16,
+      "height": 16,
+      "footprintW": 1,
+      "footprintH": 1,
+      "isDesk": false,
+      "canPlaceOnWalls": false,
+      "canPlaceOnSurfaces": true
+    },
+    {
+      "id": "ASSET_46",
+      "name": "bookshelf",
+      "label": "Bookshelf",
+      "category": "storage",
+      "file": "assets/furniture/bookshelf.png",
+      "width": 32,
+      "height": 16,
+      "footprintW": 2,
+      "footprintH": 1,
+      "isDesk": false,
+      "canPlaceOnWalls": true
+    },
+    {
+      "id": "ASSET_47",
+      "name": "rug",
+      "label": "Rug",
+      "category": "flooring",
+      "file": "assets/furniture/rug.png",
+      "width": 32,
+      "height": 32,
+      "footprintW": 2,
+      "footprintH": 2,
+      "isDesk": false,
+      "canPlaceOnWalls": false
+    }
+  ]
+}
