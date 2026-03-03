@@ -1,11 +1,37 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    outDir: '../dist/webview',
-    emptyOutDir: true,
-  },
-  base: './',
+export default defineConfig(({ mode }) => {
+  const isLib = mode === 'lib'
+
+  return {
+    plugins: [react()],
+    build: isLib ? {
+      lib: {
+        entry: {
+          index: './src/index.ts',
+          'adapter/index': './src/adapter.ts',
+          'adapter-context/index': './src/adapterContext.ts',
+        },
+        name: 'PixelAgentsWebview',
+        formats: ['es'],
+        fileName: (_format, entryName) => `${entryName}.js`,
+      },
+      rollupOptions: {
+        external: ['react', 'react-dom'],
+        output: {
+          globals: {
+            react: 'React',
+            'react-dom': 'ReactDOM',
+          },
+        },
+      },
+      outDir: 'dist',
+      emptyOutDir: true,
+    } : {
+      outDir: 'dist',
+      emptyOutDir: true,
+    },
+    base: './',
+  }
 })

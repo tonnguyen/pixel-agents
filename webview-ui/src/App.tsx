@@ -6,7 +6,9 @@ import { EditorToolbar } from './office/editor/EditorToolbar.js'
 import { EditorState } from './office/editor/editorState.js'
 import { EditTool } from './office/types.js'
 import { isRotatable } from './office/layout/furnitureCatalog.js'
-import { vscode } from './vscodeApi.js'
+import type { PlatformAdapter } from './adapter.js'
+import { adapter as defaultAdapter } from './adapter.js'
+import { AdapterContext } from './adapterContext.js'
 import { useExtensionMessages } from './hooks/useExtensionMessages.js'
 import { PULSE_ANIMATION_DURATION_SEC } from './constants.js'
 import { useEditorActions } from './hooks/useEditorActions.js'
@@ -18,6 +20,11 @@ import { DebugView } from './components/DebugView.js'
 // Game state lives outside React — updated imperatively by message handlers
 const officeStateRef = { current: null as OfficeState | null }
 const editorState = new EditorState()
+
+export interface PixelAgentsAppProps {
+  /** Optional adapter for direct integration (defaults to singleton adapter) */
+  adapter?: PlatformAdapter;
+}
 
 function getOfficeState(): OfficeState {
   if (!officeStateRef.current) {
@@ -116,7 +123,8 @@ function EditActionBar({ editor, editorState: es }: { editor: ReturnType<typeof 
   )
 }
 
-function App() {
+export function App({ adapter: propAdapter }: PixelAgentsAppProps = {}) {
+  const adapter = propAdapter ?? defaultAdapter;
   const editor = useEditorActions(getOfficeState, editorState)
 
   const isEditDirty = useCallback(() => editor.isEditMode && editor.isDirty, [editor.isEditMode, editor.isDirty])
@@ -128,7 +136,7 @@ function App() {
   const handleToggleDebugMode = useCallback(() => setIsDebugMode((prev) => !prev), [])
 
   const handleSelectAgent = useCallback((id: number) => {
-    vscode.postMessage({ type: 'focusAgent', id })
+    adapter.postMessage({ type: 'focusAgent', id })
   }, [])
 
   const containerRef = useRef<HTMLDivElement>(null)
@@ -147,7 +155,7 @@ function App() {
   )
 
   const handleCloseAgent = useCallback((id: number) => {
-    vscode.postMessage({ type: 'closeAgent', id })
+    adapter.postMessage({ type: 'closeAgent', id })
   }, [])
 
   const handleClick = useCallback((agentId: number) => {
@@ -155,7 +163,7 @@ function App() {
     const os = getOfficeState()
     const meta = os.subagentMeta.get(agentId)
     const focusId = meta ? meta.parentAgentId : agentId
-    vscode.postMessage({ type: 'focusAgent', id: focusId })
+    adapter.postMessage({ type: 'focusAgent', id: focusId })
   }, [])
 
   const officeState = getOfficeState()
@@ -177,13 +185,16 @@ function App() {
 
   if (!layoutReady) {
     return (
-      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--vscode-foreground)' }}>
-        Loading...
-      </div>
+      <AdapterContext.Provider value={adapter}>
+        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--vscode-foreground)' }}>
+          Loading...
+        </div>
+      </AdapterContext.Provider>
     )
   }
 
   return (
+    <AdapterContext.Provider value={adapter}>
     <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}>
       <style>{`
         @keyframes pixel-agents-pulse {
@@ -307,6 +318,7 @@ function App() {
         />
       )}
     </div>
+    </AdapterContext.Provider>
   )
 }
 

@@ -7,7 +7,7 @@ import { buildDynamicCatalog } from '../office/layout/furnitureCatalog.js'
 import { setFloorSprites } from '../office/floorTiles.js'
 import { setWallSprites } from '../office/wallTiles.js'
 import { setCharacterTemplates } from '../office/sprites/spriteData.js'
-import { vscode } from '../vscodeApi.js'
+import { useAdapter } from '../adapterContext.js'
 import { playDoneSound, setSoundEnabled } from '../notificationSound.js'
 
 export interface SubagentCharacter {
@@ -52,13 +52,13 @@ export interface ExtensionMessageState {
   workspaceFolders: WorkspaceFolder[]
 }
 
-function saveAgentSeats(os: OfficeState): void {
+function saveAgentSeats(os: OfficeState, adapter: { postMessage(message: Record<string, unknown>): void }): void {
   const seats: Record<number, { palette: number; hueShift: number; seatId: string | null }> = {}
   for (const ch of os.characters.values()) {
     if (ch.isSubagent) continue
     seats[ch.id] = { palette: ch.palette, hueShift: ch.hueShift, seatId: ch.seatId }
   }
-  vscode.postMessage({ type: 'saveAgentSeats', seats })
+  adapter.postMessage({ type: 'saveAgentSeats', seats })
 }
 
 export function useExtensionMessages(
@@ -75,6 +75,8 @@ export function useExtensionMessages(
   const [layoutReady, setLayoutReady] = useState(false)
   const [loadedAssets, setLoadedAssets] = useState<{ catalog: FurnitureAsset[]; sprites: Record<string, string[][]> } | undefined>()
   const [workspaceFolders, setWorkspaceFolders] = useState<WorkspaceFolder[]>([])
+
+  const adapter = useAdapter();
 
   // Track whether initial layout has been loaded (ref to avoid re-render)
   const layoutReadyRef = useRef(false)
@@ -110,7 +112,7 @@ export function useExtensionMessages(
         layoutReadyRef.current = true
         setLayoutReady(true)
         if (os.characters.size > 0) {
-          saveAgentSeats(os)
+          saveAgentSeats(os, adapter)
         }
       } else if (msg.type === 'agentCreated') {
         const id = msg.id as number
@@ -118,7 +120,7 @@ export function useExtensionMessages(
         setAgents((prev) => (prev.includes(id) ? prev : [...prev, id]))
         setSelectedAgent(id)
         os.addAgent(id, undefined, undefined, undefined, undefined, folderName)
-        saveAgentSeats(os)
+        saveAgentSeats(os, adapter)
       } else if (msg.type === 'agentClosed') {
         const id = msg.id as number
         setAgents((prev) => prev.filter((a) => a !== id))
@@ -356,9 +358,9 @@ export function useExtensionMessages(
       }
     }
     window.addEventListener('message', handler)
-    vscode.postMessage({ type: 'webviewReady' })
+    adapter.postMessage({ type: 'webviewReady' })
     return () => window.removeEventListener('message', handler)
-  }, [getOfficeState])
+  }, [getOfficeState, adapter])
 
   return { agents, selectedAgent, agentTools, agentStatuses, subagentTools, subagentCharacters, layoutReady, loadedAssets, workspaceFolders }
 }
