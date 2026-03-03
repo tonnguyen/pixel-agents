@@ -10,8 +10,8 @@ export default defineConfig(({ mode }) => {
       lib: {
         entry: {
           index: './src/index.ts',
-          'adapter/index': './src/adapter.ts',
-          'adapter-context/index': './src/adapterContext.ts',
+          adapter: './src/adapter.ts',
+          'adapter-context': './src/adapterContext.ts',
         },
         name: 'PixelAgentsWebview',
         formats: ['es'],
